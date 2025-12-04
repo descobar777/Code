@@ -1,0 +1,123 @@
+# David Murphy
+# CSCI 128 - Section E
+# References: No one
+# Time: 8 hours
+
+
+
+import random
+import time
+import matplotlib.pyplot as plt
+
+OPERATORS = ["+", "-", "*", "/"]
+DIFFICULTY_LEVELS = {
+    "easy": (1, 10, 5),
+    "medium": (3, 12, 10),
+    "hard": (5, 20, 15)
+}
+
+def get_difficulty():
+    while True:
+        difficulty = input("Choose difficulty (easy, medium, hard): ").lower()
+        if difficulty in DIFFICULTY_LEVELS:
+            return DIFFICULTY_LEVELS[difficulty]
+        print("Invalid choice. Please choose easy, medium, or hard.")
+
+def generate_problem(min_operand, max_operand):
+    left = random.randint(min_operand, max_operand)
+    right = random.randint(min_operand, max_operand)
+    operator = random.choice(OPERATORS)
+    
+    if operator == "/":
+        right = random.randint(1, max_operand)
+        left = right * random.randint(min_operand, max_operand) 
+    
+    if operator == "+":
+        answer = left + right
+    elif operator == "-":
+        answer = left - right
+    elif operator == "*":
+        answer = left * right
+    elif operator == "/":
+        answer = left // right
+    
+    expr = f"{left} {operator} {right}"
+    
+    return expr, answer
+
+
+def log_results(filename, total_time, wrong_attempts):
+    with open(filename, "a") as file:
+        file.write(f"Time: {total_time} seconds, Wrong attempts: {wrong_attempts}\n")
+
+def reset_results(filename):
+    with open(filename, "w") as file:
+        file.write("") 
+    print("Results have been reset.")
+
+def plot_results(filename):
+    times = []
+    wrong_attempts = []
+    
+    with open(filename, "r") as file:
+        for line in file:
+            line = line.strip()
+            time_value = float(line.split("Time: ")[1].split(" seconds")[0])
+            wrong_value = int(line.split("Wrong attempts: ")[1])
+            times.append(time_value)
+            wrong_attempts.append(wrong_value)
+    
+    
+    attempts = list(range(1, len(times) + 1))
+    plt.figure(figsize=(8, 5))
+    plt.plot(times, label="Completion Time (s)", marker="o")
+    plt.plot(wrong_attempts, label="Wrong Attempts", marker="s")
+    plt.xlabel("Attempt #")
+    plt.ylabel("Values")
+    plt.legend()
+    plt.title("Performance Over Time")
+    plt.xlim(left = 0)
+    plt.ylim(bottom = 0) 
+    plt.xticks(attempts)
+    plt.savefig("performance_over_time.png")
+    plt.show()
+
+       
+def main():
+    if input("Do you want to reset past results? (yes/no): ").lower() == "yes":
+        reset_results("results.txt")
+    min_operand, max_operand, total_problems = get_difficulty()
+    wrong = 0
+
+    input("Press enter to start!")
+    print("----------------------")
+
+    start_time = time.time()
+
+    for i in range(1, total_problems + 1):
+        problem = generate_problem(min_operand, max_operand)
+        expr = problem[0]
+        answer = problem[1]
+    
+        while True:
+            guess = input(f"Problem #{i}: {expr} = ")
+            if guess == str(answer):
+                break
+            wrong += 1
+
+    end_time = time.time()
+    total_time = round(end_time - start_time, 2)
+
+    log_results("results.txt", total_time, wrong)
+    plot_results("results.txt")
+
+    print("----------------------")
+    if wrong == 0:
+        print(f"Nice work! You finished in {total_time} seconds and had {wrong} wrong attempts! You're doing an amazing job!")
+    elif wrong == 1:
+        print(f"Great Job! You finished in {total_time} and only had {wrong} wrong attempt! Keep Going, You got this!")
+    elif wrong > 1:
+        print(f"You finished in {total_time} and had {wrong} wrong attempts. Keep Practicing! Take your time and try your best. You got this!")
+
+if __name__ == "__main__":
+    main()
